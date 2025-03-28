@@ -10,7 +10,7 @@ param (
 
 # Check if the CSV file exists
 if (-not (Test-Path $CsvPath)) {
-    Write-Error "❌ The specified CSV file does not exist: $CsvPath"
+    Write-Error "The specified CSV file does not exist: $CsvPath"
     exit 1
 }
 
@@ -18,7 +18,7 @@ if (-not (Test-Path $CsvPath)) {
 try {
     $ouExists = Get-ADOrganizationalUnit -LDAPFilter "(distinguishedName=$TargetOU)" -ErrorAction Stop
 } catch {
-    Write-Error "❌ The specified OU does not exist in Active Directory: $TargetOU"
+    Write-Error "The specified OU does not exist in Active Directory: $TargetOU"
     exit 1
 }
 
@@ -29,7 +29,7 @@ $users = Import-Csv -Path $CsvPath
 $requiredColumns = @("first_name", "last_name", "password")
 foreach ($col in $requiredColumns) {
     if (-not ($users | Get-Member -Name $col)) {
-        Write-Error "❌ Missing required column '$col' in the CSV."
+        Write-Error "Missing required column '$col' in the CSV."
         exit 1
     }
 }
@@ -51,7 +51,7 @@ foreach ($user in $users) {
     # Check if the user already exists in Active Directory
     $existingUser = Get-ADUser -Filter { SamAccountName -eq $login } -ErrorAction SilentlyContinue
     if ($existingUser) {
-        Write-Error "❌ User '$login' already exists in Active Directory. Aborting script."
+        Write-Error "User '$login' already exists in Active Directory. Script will stop."
         exit 1
     }
 
@@ -60,7 +60,7 @@ foreach ($user in $users) {
 
     # Dry Run Mode
     if ($WhatIf) {
-        Write-Host "🔍 [WhatIf] User would be created: $login in '$TargetOU'" -ForegroundColor Cyan
+        Write-Host "[WhatIf] User would be created: $login in '$TargetOU'" -ForegroundColor Cyan
     } else {
         try {
             New-ADUser -Name $displayName `
@@ -73,9 +73,9 @@ foreach ($user in $users) {
                        -Enabled $true `
                        -Path $TargetOU
 
-            Write-Host "✅ User created: $login" -ForegroundColor Green
+            Write-Host "User created: $login" -ForegroundColor Green
         } catch {
-            Write-Error "❌ Error creating user '$login': $_"
+            Write-Error "Error creating user '$login': $_"
         }
     }
 }
